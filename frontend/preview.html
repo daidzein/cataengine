@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CATA UI preview (sample data)</title>
+<style>
+  body { margin: 0; font-family: Segoe UI, Arial, sans-serif; }
+  .note { background: #eef4ff; border-bottom: 1px solid #c9d8f5; padding: 6px 12px; font-size: 12px; color: #234; }
+  iframe { width: 100%; height: calc(100vh - 32px); border: 0; display: block; }
+</style>
+</head>
+<body>
+<div class="note">Preview with sample data. Add <b>?error=1</b> to the address to see the error box. The real app runs with <code>py frontend/app.py</code>.</div>
+<iframe id="f" src="ui.html"></iframe>
+
+<script>
+const SAMPLE = {
+  provenance: { settings: { alpha: 0.05 } },
+  validation: { n_panelists: 30, n_products: 3, n_attributes: 3 },
+  warnings: [
+    { code: "LOW_EXPECTED_COUNTS", message: "1 of 9 cells have an expected count below 5; the chi-square approximation may be unreliable." }
+  ],
+  results: {
+    cochran_q: [
+      { attribute: "Sweet", q: 15.321, df: 2, p_value: 0.00408, note: null },
+      { attribute: "Salty", q: 3.0, df: 2, p_value: 0.558, note: null },
+      { attribute: "Smoky", q: 38.741, df: 2, p_value: 7.88e-8, note: null }
+    ],
+    chisq: { computed: true, statistic: 12.345, df: 4, p_value: 0.0149 },
+    contingency: {
+      rows: ["Sweet", "Salty", "Smoky"],
+      cols: ["Product A", "Product B", "Product C"],
+      values: [[17, 20, 9], [29, 30, 29], [15, 11, 2]]
+    }
+  }
+};
+
+const wantError = new URLSearchParams(location.search).get("error") === "1";
+const frame = document.getElementById("f");
+
+frame.addEventListener("load", () => {
+  const w = frame.contentWindow;
+  w.pywebview = {
+    api: {
+      choose_file: async () => "C:/demo/data.xlsx",
+      inspect: async () => ({ ok: true, kind: "xlsx", sheets: ["Sheet1 (2)", "CATA1"], default_sheet: "Sheet1 (2)" }),
+      run: async (path, sheet) => {
+        await new Promise(r => setTimeout(r, 600));
+        if (wantError) {
+          return { ok: false, message: "Column 'checked' must contain only 0 or 1. Found invalid value: '2'." };
+        }
+        return { ok: true, doc: SAMPLE, out_dir: "C:/demo/out", converted: "C:/demo/out/data_long.csv", reshaped: true };
+      }
+    }
+  };
+  w.dispatchEvent(new Event("pywebviewready"));
+});
+</script>
+</body>
+</html>

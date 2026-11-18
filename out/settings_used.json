@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "alpha": 0.05,
+  "correction": "bonferroni",
+  "analyses": [
+    "contingency",
+    "cochran_q",
+    "chisq"
+  ],
+  "ideal_product_name": "Ideal",
+  "exclude_ideal_from_q": true
+}

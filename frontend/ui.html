@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CATA Analysis</title>
+<style>
+  body { font-family: Segoe UI, Arial, sans-serif; margin: 24px; color: #222; }
+  h1 { font-size: 22px; margin: 0 0 16px; }
+  h2 { font-size: 16px; margin: 24px 0 8px; }
+  .bar { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  button { padding: 8px 14px; font-size: 14px; cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: 0.5; }
+  select { padding: 6px; font-size: 14px; }
+  #file { color: #555; font-size: 14px; }
+  #status { margin: 8px 0; font-size: 14px; }
+  .error { background: #fdecea; border: 1px solid #f5c2c0; color: #8a1f17; padding: 10px 12px; border-radius: 6px; }
+  .warn { background: #fff8e1; border: 1px solid #f0dc9b; color: #6b5200; padding: 8px 12px; border-radius: 6px; margin: 4px 0; font-size: 13px; }
+  table { border-collapse: collapse; font-size: 13px; }
+  th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  th { background: #f3f3f3; }
+  .sig { background: #e8f5e9; font-weight: 600; }
+  .scroll { overflow-x: auto; max-width: 100%; }
+  .small { color: #666; font-size: 12px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<h1>CATA Analysis</h1>
+<div class="bar">
+  <button id="pick">Choose data file…</button>
+  <span id="file">No file chosen</span>
+</div>
+<div class="bar hidden" id="sheetRow">
+  <label for="sheet">Sheet:</label>
+  <select id="sheet"></select>
+</div>
+<div class="bar">
+  <button id="run" disabled>Run analysis</button>
+</div>
+<p class="small">Excel (.xlsx) or CSV. Layout: column 1 = panelist, column 2 = product, then one 0/1 column per attribute.</p>
+<div id="status"></div>
+<div id="output"></div>
+
+<script>
+let chosen = null;
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtP(p) {
+  if (p === null || p === undefined) return 'n/a';
+  return p < 0.0001 ? p.toExponential(2) : p.toFixed(4);
+}
+function fmtNum(x, d) {
+  return (x === null || x === undefined) ? 'n/a' : Number(x).toFixed(d);
+}
+
+function renderResults(doc) {
+  const alpha = (doc.provenance && doc.provenance.settings && doc.provenance.settings.alpha) || 0.05;
+  const v = doc.validation;
+  let html = '';
+
+  html += '<p>' + v.n_panelists + ' panelists, ' + v.n_products + ' products, ' + v.n_attributes + ' attributes.</p>';
+
+  (doc.warnings || []).forEach(w => {
+    html += '<div class="warn"><b>' + esc(w.code) + ':</b> ' + esc(w.message) + '</div>';
+  });
+
+  const r = doc.results || {};
+
+  if (r.cochran_q) {
+    html += '<h2>Cochran\'s Q test (per attribute)</h2>';
+    html += '<table><tr><th>Attribute</th><th>Q</th><th>p-value</th><th>Significant at ' + alpha + '</th></tr>';
+    r.cochran_q.forEach(row => {
+      const sig = row.p_value !== null && row.p_value !== undefined && row.p_value < alpha;
+      html += '<tr class="' + (sig ? 'sig' : '') + '"><td>' + esc(row.attribute) + '</td><td>' + fmtNum(row.q, 3) +
+              '</td><td>' + fmtP(row.p_value) + '</td><td>' + (sig ? 'yes' : '') + '</td></tr>';
+    });
+    html += '</table><p class="small">The ideal product is not included in this test. p-values are not corrected across attributes.</p>';
+  }
+
+  if (r.chisq) {
+    html += '<h2>Chi-square test of independence</h2>';
+    if (r.chisq.computed) {
+      html += '<p>Chi-square = ' + fmtNum(r.chisq.statistic, 3) + ', df = ' + r.chisq.df + ', p = ' + fmtP(r.chisq.p_value) + '</p>';
+    } else {
+      html += '<p>Not computed: ' + esc(r.chisq.note) + '</p>';
+    }
+  }
+
+  if (r.contingency) {
+    const c = r.contingency;
+    html += '<h2>Citation counts</h2><div class="scroll"><table><tr><th>Attribute</th>';
+    c.cols.forEach(p => { html += '<th>' + esc(p) + '</th>'; });
+    html += '</tr>';
+    c.rows.forEach((a, i) => {
+      html += '<tr><td>' + esc(a) + '</td>';
+      c.values[i].forEach(n => { html += '<td>' + n + '</td>'; });
+      html += '</tr>';
+    });
+    html += '</table></div>';
+  }
+
+  document.getElementById('output').innerHTML = html;
+}
+
+function showError(msg) {
+  document.getElementById('output').innerHTML = '';
+  document.getElementById('status').innerHTML = '<div class="error">' + esc(msg) + '</div>';
+}
+
+window.addEventListener('pywebviewready', () => {
+  const runBtn = document.getElementById('run');
+  const sheetRow = document.getElementById('sheetRow');
+  const sheetSel = document.getElementById('sheet');
+
+  document.getElementById('pick').addEventListener('click', async () => {
+    const path = await window.pywebview.api.choose_file();
+    if (!path) return;
+    chosen = path;
+    document.getElementById('file').textContent = path;
+    document.getElementById('status').textContent = '';
+    document.getElementById('output').innerHTML = '';
+    runBtn.disabled = true;
+    sheetRow.classList.add('hidden');
+
+    const info = await window.pywebview.api.inspect(path);
+    if (!info.ok) { showError(info.message); return; }
+
+    if (info.kind === 'xlsx') {
+      sheetSel.innerHTML = '';
+      info.sheets.forEach(name => {
+        const o = document.createElement('option');
+        o.value = name; o.textContent = name;
+        if (name === info.default_sheet) o.selected = true;
+        sheetSel.appendChild(o);
+      });
+      sheetRow.classList.remove('hidden');
+    }
+    runBtn.disabled = false;
+  });
+
+  runBtn.addEventListener('click', async () => {
+    if (!chosen) return;
+    const sheet = sheetRow.classList.contains('hidden') ? null : sheetSel.value;
+    document.getElementById('status').textContent = 'Running analysis…';
+    document.getElementById('output').innerHTML = '';
+    runBtn.disabled = true;
+    try {
+      const res = await window.pywebview.api.run(chosen, sheet);
+      if (res.ok) {
+        let msg = 'Done. Results saved in: ' + res.out_dir;
+        msg += res.reshaped
+          ? '. Your file was converted to long format and saved as: ' + res.converted
+          : '. Data saved as: ' + res.converted;
+        document.getElementById('status').textContent = msg;
+        renderResults(res.doc);
+      } else {
+        showError(res.message);
+      }
+    } catch (e) {
+      showError('Something went wrong: ' + e);
+    }
+    runBtn.disabled = false;
+  });
+});
+</script>
+</body>
+</html>

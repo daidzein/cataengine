@@ -1,0 +1,173 @@
+{
+  "schema_version": "1.0",
+  "provenance": {
+    "engine_version": "0.1.0",
+    "r_version": "R version 4.6.2 (2026-10-29 ucrt)",
+    "packages": {
+      "DescTools": "0.99.60"
+    },
+    "settings": {
+      "schema_version": "1.0",
+      "alpha": 0.05,
+      "correction": "bonferroni",
+      "analyses": ["contingency", "cochran_q", "chisq"],
+      "ideal_product_name": "Ideal",
+      "exclude_ideal_from_q": true
+    },
+    "timestamp": "2026-11-19T06:16:12+0700",
+    "input_file": "data_long.csv"
+  },
+  "validation": {
+    "n_panelists": 30,
+    "n_products": 6,
+    "n_attributes": 15,
+    "products": ["Chitato Lite", "Chitato wive", "Ideal", "Japota", "Pota Bee", "Taro"],
+    "attributes": ["Aroma Beef", "Aroma Fatty", "Aroma Grilled", "Aroma Smoky", "Aroma Toasted Onion", "Rasa Asam", "Rasa Asin", "Rasa Beef", "Rasa Fatty", "Rasa Grilled", "Rasa Gurih", "Rasa Manis", "Rasa Pedas", "Rasa Smoky", "Rasa Toasted Onion"],
+    "dropped_attributes": []
+  },
+  "warnings": [
+    {
+      "code": "LOW_EXPECTED_COUNTS",
+      "message": "1 of 90 cells have an expected count below 5; the chi-square approximation may be unreliable."
+    }
+  ],
+  "results": {
+    "contingency": {
+      "rows": ["Aroma Beef", "Aroma Fatty", "Aroma Grilled", "Aroma Smoky", "Aroma Toasted Onion", "Rasa Asam", "Rasa Asin", "Rasa Beef", "Rasa Fatty", "Rasa Grilled", "Rasa Gurih", "Rasa Manis", "Rasa Pedas", "Rasa Smoky", "Rasa Toasted Onion"],
+      "cols": ["Chitato Lite", "Chitato wive", "Ideal", "Japota", "Pota Bee", "Taro"],
+      "values": [
+        [17, 18, 22, 17, 19, 5],
+        [6, 9, 7, 7, 10, 4],
+        [11, 15, 23, 18, 15, 3],
+        [15, 11, 28, 22, 12, 2],
+        [10, 8, 12, 12, 8, 7],
+        [15, 17, 15, 14, 12, 7],
+        [29, 30, 29, 30, 30, 29],
+        [17, 27, 26, 23, 23, 9],
+        [9, 13, 15, 16, 11, 6],
+        [12, 15, 23, 17, 15, 5],
+        [29, 29, 28, 29, 29, 30],
+        [17, 20, 25, 17, 20, 9],
+        [13, 20, 12, 13, 14, 8],
+        [14, 16, 29, 18, 19, 2],
+        [12, 17, 19, 16, 15, 10]
+      ]
+    },
+    "cochran_q": [
+      {
+        "attribute": "Aroma Beef",
+        "q": 25.5384615384615,
+        "df": 4,
+        "p_value": 3.92015480509655e-05,
+        "note": null
+      },
+      {
+        "attribute": "Aroma Fatty",
+        "q": 6.51428571428571,
+        "df": 4,
+        "p_value": 0.163892490363459,
+        "note": null
+      },
+      {
+        "attribute": "Aroma Grilled",
+        "q": 25.037037037037,
+        "df": 4,
+        "p_value": 4.94544738922056e-05,
+        "note": null
+      },
+      {
+        "attribute": "Aroma Smoky",
+        "q": 38.7407407407407,
+        "df": 4,
+        "p_value": 7.88050340572213e-08,
+        "note": null
+      },
+      {
+        "attribute": "Aroma Toasted Onion",
+        "q": 3.47826086956522,
+        "df": 4,
+        "p_value": 0.481191516788917,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Asam",
+        "q": 13.1818181818182,
+        "df": 4,
+        "p_value": 0.0104207347485048,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Asin",
+        "q": 3,
+        "df": 4,
+        "p_value": 0.557825400371075,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Beef",
+        "q": 33.9310344827586,
+        "df": 4,
+        "p_value": 7.69855478778708e-07,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Fatty",
+        "q": 10.5454545454545,
+        "df": 4,
+        "p_value": 0.0321765922054845,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Grilled",
+        "q": 14.0952380952381,
+        "df": 4,
+        "p_value": 0.00699721706989151,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Gurih",
+        "q": 1.14285714285714,
+        "df": 4,
+        "p_value": 0.887414191726479,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Manis",
+        "q": 15.3207547169811,
+        "df": 4,
+        "p_value": 0.00408016005576177,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Pedas",
+        "q": 14.0769230769231,
+        "df": 4,
+        "p_value": 0.00705355295034014,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Smoky",
+        "q": 29.5,
+        "df": 4,
+        "p_value": 6.18638508413264e-06,
+        "note": null
+      },
+      {
+        "attribute": "Rasa Toasted Onion",
+        "q": 8.5,
+        "df": 4,
+        "p_value": 0.0748872280222461,
+        "note": null
+      }
+    ],
+    "chisq": {
+      "computed": true,
+      "statistic": 72.6030364651518,
+      "df": 70,
+      "p_value": 0.392220141861917,
+      "cells_expected_below_5": 1,
+      "n_cells": 90,
+      "note": "Treats citation counts as independent observations; the same panelists rate every product, so interpret with caution."
+    }
+  }
+}
