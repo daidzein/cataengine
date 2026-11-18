@@ -1,0 +1,11 @@
+Package: cataengine
+Type: Package
+Title: CATA Sensory Analysis Engine
+Version: 0.1.0
+Description: Statistical back end for check-all-that-apply (CATA) sensory
+    analysis. Validates input, runs the analyses, returns structured results.
+License: GPL (>= 3)
+Encoding: UTF-8
+Imports: DescTools, stats, utils
+Suggests: jsonlite, testthat (>= 3.0.0)
+Config/testthat/edition: 3
